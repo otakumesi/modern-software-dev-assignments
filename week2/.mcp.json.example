@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "github-issues-week2": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["--directory", "${CLAUDE_PROJECT_DIR:-.}", "run", "python", "-m", "week2.github_mcp", "serve"],
+      "env": {
+        "GITHUB_CLIENT_ID": "${GITHUB_CLIENT_ID}",
+        "GITHUB_CLIENT_SECRET": "${GITHUB_CLIENT_SECRET}",
+        "GITHUB_REPOSITORY": "${GITHUB_REPOSITORY}"
+      }
+    }
+  }
+}

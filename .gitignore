@@ -27,6 +27,7 @@ PIPFILE.lock
 
 # Environment variables
 .env
+.mcp.json
 .venv
 env/
 venv/
