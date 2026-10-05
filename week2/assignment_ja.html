@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第2週：サードパーティ API 用の MCP サーバーを構築する</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #243244;
+        --heading: #164e63;
+        --accent: #2563eb;
+        --border: #cbd5e1;
+        --soft-blue: #eff6ff;
+        --soft-slate: #f8fafc;
+      }
+
+      html { background: #edf3f8; }
+
+      body {
+        box-sizing: border-box;
+        max-width: 76rem;
+        margin: 2rem auto;
+        padding: 3rem clamp(1.5rem, 4vw, 4.5rem);
+        color: var(--ink);
+        background: #fff;
+        box-shadow: 0 12px 36px rgb(15 23 42 / 10%);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.72;
+      }
+
+      h1, h2, h3, h4 { color: var(--heading); }
+      h1 { color: #123b66; }
+      h2 { padding-bottom: .35rem; border-bottom: 2px solid #7dd3fc; }
+      a, a:visited { color: var(--accent); }
+
+      #TOC {
+        margin: 1.5rem 0 2.5rem;
+        padding: 1rem 1.5rem;
+        border: 1px solid #bfdbfe;
+        border-radius: .65rem;
+        background: var(--soft-blue);
+      }
+      #TOC ul { margin: .5rem 0; }
+
+      blockquote {
+        margin-left: 0;
+        padding: .75rem 1.1rem;
+        border-left: 4px solid #38bdf8;
+        border-radius: 0 .4rem .4rem 0;
+        color: #334155;
+        background: #f0f9ff;
+      }
+
+      pre {
+        padding: 1rem 1.2rem;
+        border: 1px solid #1e293b;
+        border-radius: .55rem;
+        color: #e2e8f0;
+        background: #0f172a;
+      }
+      pre code { color: inherit; background: transparent; }
+      :not(pre) > code {
+        padding: .08rem .3rem;
+        border-radius: .25rem;
+        color: #9a3412;
+        background: #fff7ed;
+      }
+
+      table { border: 1px solid var(--border); background: #fff; }
+      thead { color: #1e3a8a; background: #dbeafe; }
+      th, td {
+        padding: .55rem .7rem;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: top;
+      }
+      tbody tr:nth-child(even) { background: var(--soft-slate); }
+
+      @media (max-width: 700px) {
+        body { margin: 0; padding: 1.25rem; box-shadow: none; }
+      }
+      @media print {
+        html, body { background: #fff; }
+        body { max-width: none; margin: 0; padding: 0; box-shadow: none; }
+      }
+    </style>
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#week-2サードパーティ-api-用の-mcp-サーバーを構築する"
+id="toc-week-2サードパーティ-api-用の-mcp-サーバーを構築する">Week
+2：サードパーティ API 用の MCP サーバーを構築する</a>
+<ul>
+<li><a href="#課題概要" id="toc-課題概要">課題概要</a>
+<ul>
+<li><a href="#学習目標" id="toc-学習目標">学習目標</a></li>
+</ul></li>
+<li><a href="#教材" id="toc-教材">教材</a></li>
+<li><a href="#part-iサーバーの構築25点"
+id="toc-part-iサーバーの構築25点">Part
+I：サーバーの構築（25点）</a></li>
+<li><a href="#part-iiエージェントにとっての使いやすさ30点"
+id="toc-part-iiエージェントにとっての使いやすさ30点">Part
+II：エージェントにとっての使いやすさ（30点）</a></li>
+<li><a href="#part-iiioauth25点" id="toc-part-iiioauth25点">Part
+III：OAuth（25点）</a></li>
+<li><a href="#part-iv統合と実演20点" id="toc-part-iv統合と実演20点">Part
+IV：統合と実演（20点）</a></li>
+<li><a href="#提出物" id="toc-提出物">提出物</a></li>
+<li><a href="#評価基準合計100点"
+id="toc-評価基準合計100点">評価基準（合計100点）</a></li>
+<li><a href="#提出手順" id="toc-提出手順">提出手順</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="week-2サードパーティ-api-用の-mcp-サーバーを構築する">Week
+2：サードパーティ API 用の MCP サーバーを構築する</h1>
+<h2 id="課題概要">課題概要</h2>
+<p>サードパーティ API をコーディングエージェントから利用できるようにする
+MCP サーバーを構築してください。API
+を扱う部分自体は簡単です。評価対象となるのは
+<strong>エージェントにとっての使いやすさ（agent
+ergonomics）</strong>、つまりモデルが適切なツールを選び、正しく呼び出し、失敗した場合に復旧できるかどうかです。さらに、ラップする価値のある
+API の多くは固定キーでは認証できないため、実際に動作する
+<strong>OAuth</strong> フローも必要です。</p>
+<h3 id="学習目標">学習目標</h3>
+<ul>
+<li>スキーマと説明文しか見られないエージェントを利用者として想定し、ツールのインターフェースを
+<strong>設計</strong> する。</li>
+<li>長時間稼働するサーバー内で、OAuth トークンの取得、キャッシュ、更新を
+<strong>実装</strong> する。</li>
+<li>自分の設計上の選択によって、エージェントの実際の動作がどう変わるかを
+<strong>観察</strong> する。</li>
+</ul>
+<h2 id="教材">教材</h2>
+<ul>
+<li><strong><a
+href="https://github.com/jlowin/fastmcp">FastMCP</a></strong>：今回の構築に使用するもの。</li>
+<li><strong><a href="https://modelcontextprotocol.io/">MCP
+仕様</a></strong>：ツールアノテーション、トランスポート、エラーのセマンティクス。</li>
+<li><strong><a
+href="https://github.com/modelcontextprotocol/servers">MCP
+サーバーのリファレンス実装</a></strong>：自分で書き始める前に、この中から1つ読んでください。</li>
+</ul>
+<h2 id="part-iサーバーの構築25点">Part I：サーバーの構築（25点）</h2>
+<p><strong>OAuth 2.0</strong> を使用する API
+を1つ選んでください。GitHub、Google（Gmail／Calendar／Drive）、Notion、Linear、Slack、Spotify、Strava
+は、いずれも条件を満たします。自分が実際に使っているものを選んでください。そのほうが、ツールが何をすべきかを適切に判断できます。</p>
+<p>要件：</p>
+<ul>
+<li><strong>少なくとも3つのツール</strong>を用意し、それらが
+<strong>連携（compose）</strong>
+できること。つまり、あるツールの出力を別のツールの入力として使える必要があります（例：<code>search_x</code>
+が返す ID を <code>get_x(id)</code> が受け取る）。</li>
+<li>実際の状態を変更する
+<strong>書き込みツールを少なくとも1つ</strong>用意すること。</li>
+<li>コードは <code>week2/</code> 内に置き、stdio
+経由で動作し、ドキュメントに記載した1つのコマンドで起動できること。</li>
+</ul>
+<h2 id="part-iiエージェントにとっての使いやすさ30点">Part
+II：エージェントにとっての使いやすさ（30点）</h2>
+<p>ここがこの課題の本質です。以下の項目はすべて、エージェントにはスキーマと
+docstring
+しか見えず、<em>それ以外は何も見えない</em>という事実を踏まえたものです。</p>
+<ul>
+<li><strong>制約は説明文ではなくスキーマに記述する。</strong>
+<code>sort: str</code> にして docstring
+に説明文を加えるより、<code>sort: Literal["stars", "forks"]</code>
+のほうが優れています。スキーマと docstring
+が食い違うと、エージェントには理由を説明できないバリデーションエラーが発生します。</li>
+<li><strong>出力の形を整える。</strong> API の生の JSON
+をそのまま渡してはいけません。エージェントに必要なフィールドを選んでください。生のペイロードはトークンを大量に消費し、あなたのインターフェース仕様を他者の
+API に密結合させます。</li>
+<li><strong>エラーはトレースバックではなくデータとして扱う。</strong>
+構造化され、対処に役立つ情報を返してください。また、エージェントが「再試行しない」（不正な
+ID）場合と「再試行する」（レート制限、一時的なネットワーク障害）場合を区別できるだけの詳細を含めてください。トレースバックはエージェントのターンを終了させますが、<code>{"error": "rate limited, retry after 42s"}</code>
+なら終了させません。</li>
+<li><strong>docstring がインターフェース仕様である。</strong>
+ツール同士を連携できるよう、ID
+の取得元（例：「<code>list_templates</code> が返す数値
+ID」）を明記してください。複数のツールにまたがるワークフローのガイダンスには
+<code>FastMCP(instructions=...)</code> を使用してください。</li>
+<li><strong>書き込みツールには安全装置が必要である。</strong>
+ツールアノテーション（読み取りツールには
+<code>readOnlyHint</code>）を使用し、取り消せない操作を行うツールには
+<code>dry_run</code>
+パラメーターを設けるか、プレビューと実行を分ける（preview-then-commit）方式を採用してください。</li>
+</ul>
+<h2 id="part-iiioauth25点">Part III：OAuth（25点）</h2>
+<p>貼り付けた Bearer トークンではなく、実際の OAuth
+フローを実装してください。</p>
+<ul>
+<li>認可コードをトークンと交換する一連の処理を完全に実装し、トークンを
+<strong>キャッシュ</strong> し、有効期限切れ時にはユーザー操作なしで
+<strong>自動更新</strong> すること。</li>
+<li><strong>必要最小限のスコープ。</strong>
+読み取りしか行わない場合は読み取り専用の権限を要求し、writeup
+で各スコープが必要な理由を説明してください。</li>
+<li><strong>リポジトリにシークレットを含めない。</strong>
+最初のコミットから環境変数を使用して読み込むようにしてください。<code>.mcp.json.example</code>
+はコミットし、実際に使用する設定ファイルは <code>.gitignore</code>
+に追加してください。</li>
+<li><strong>セッションの途中でトークンが無効になった場合に対応する。</strong>
+長時間稼働するサーバーは、ツール呼び出しの最中にブラウザーを開こうとしてはいけません。代わりに、ユーザーが対処できるエラーを返してください。</li>
+</ul>
+<h2 id="part-iv統合と実演20点">Part IV：統合と実演（20点）</h2>
+<ul>
+<li>Claude Code または Cursor
+にサーバーを登録し、その設定（<code>.mcp.json.example</code>）をコミットする。</li>
+<li>エージェントが少なくとも2つのツールを連携させて実際のプロンプトに回答する、<strong>エンドツーエンドの実行記録を1つ示す</strong>。プロンプト、呼び出されたツールと各引数、結果を含めてください。</li>
+<li><strong>失敗例を1つ示し</strong>、設計したエラー処理によってそれがどう扱われたかを示す。必要なら、不正な
+ID や失効済みトークンを使って意図的に失敗させてください。</li>
+<li>Python 関数を直接呼び出すだけでなく、<strong>MCP
+プロトコル経由でサーバーの機能を実際に呼び出す</strong>テストを少なくとも1つ用意する。</li>
+</ul>
+<h2 id="提出物">提出物</h2>
+<p><code>week2/</code>
+内に、サーバーコード、<code>.mcp.json.example</code>、テスト、記入済みの
+<code>writeup.md</code> を配置してください。</p>
+<h2 id="評価基準合計100点">評価基準（合計100点）</h2>
+<table>
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 40%" />
+<col style="width: 30%" />
+</colgroup>
+<thead>
+<tr>
+<th>パート</th>
+<th style="text-align: right;">配点</th>
+<th>満点を得るための条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I. サーバー</td>
+<td style="text-align: right;">25</td>
+<td>連携可能なツールが3つ以上あり、そのうち1つが書き込みツールで、ドキュメントに記載されたコマンドで起動できる</td>
+</tr>
+<tr>
+<td>II. エージェントにとっての使いやすさ</td>
+<td style="text-align: right;">30</td>
+<td>スキーマレベルの制約、整形された出力、構造化されたエラー、ツール連携を説明する
+docstring、書き込みツールの安全装置</td>
+</tr>
+<tr>
+<td>III. OAuth</td>
+<td style="text-align: right;">25</td>
+<td>キャッシュと更新を伴う認可コード交換が動作する、必要最小限のスコープとその根拠が示されている、シークレットがコミットされていない、セッション途中のトークン失効を適切に処理できる</td>
+</tr>
+<tr>
+<td>IV. 統合</td>
+<td style="text-align: right;">20</td>
+<td>コミット済みの設定、実際の連携実行記録、失敗経路の実演、プロトコルレベルのテスト1件</td>
+</tr>
+</tbody>
+</table>
+<p>シークレットをコミットした場合、および docstring
+とスキーマが矛盾するツールがある場合は減点します。</p>
+<h2 id="提出手順">提出手順</h2>
+<ol type="1">
+<li>採点対象となるリモートリポジトリに、すべての変更が push
+されていることを確認してください。</li>
+<li><strong>課題リポジトリのコラボレーターとして
+<code>mihail911</code>、<code>isaackann</code>、<code>vdaita</code>
+を追加したことを必ず確認してください。</strong></li>
+<li>Gradescope から提出してください。</li>
+<li><strong>任意：完了後に後片付けをする</strong>：エージェントの設定からサーバーを削除し（<code>claude mcp remove &lt;name&gt;</code>
+を実行するか、ローカルの <code>.mcp.json</code>
+の該当エントリーを削除）、キャッシュ済みトークンファイルを削除し、プロバイダーのアカウント設定から
+OAuth アプリのアクセス権を取り消します。</li>
+</ol>
+</body>
+</html>
