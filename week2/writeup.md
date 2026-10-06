@@ -1,9 +1,7 @@
 # Week 2 Write-up
 
-Status: implementation, local automated tests, the first real GitHub OAuth login, and the
-success-path E2E in Claude Code, the 404 failure case, and the misuse probes with their fix and
-re-run are done. Still pending: a real token refresh and re-auth after revocation. The remaining
-TODOs get filled from real runs.
+Status: complete. Everything below was measured against real GitHub and Claude Code
+(2026-10-05/06 UTC) unless marked as covered by automated tests only.
 
 ## Part I: The Server
 
@@ -178,7 +176,17 @@ Issue bodies are treated as untrusted data; instructions inside them never count
 > Code: `week2/github_client.py:503` (listener / PKCE), `:456` (callback / exchange),
 > `:176` (token response), `:123` / `:144` (cache), `:245` (silent refresh).
 > First real GitHub login: done (token cache created; authenticated `list_issues` / `get_issue` /
-> `add_issue_comment` calls succeeded in the E2E below). Real refresh observation: TODO.
+> `add_issue_comment` calls succeeded in the E2E below).
+>
+> Real silent refresh (2026-10-05 UTC): the cached access token expired at 14:46:32Z, and the
+> refresh token was valid until 2027-04-05. At 17:34Z I called `list_issues {"limit":3}` from
+> Claude Code. It returned `status=ok` with no browser and no prompt. Only expiry timestamps were
+> inspected in the cache, never token values; afterwards both tokens had been rotated:
+> ```text
+> access_token_expires_at   2026-10-05T14:46:32Z -> 2026-10-06T01:34:45Z  (+8 h)
+> refresh_token_expires_at  2027-04-05T06:46:32Z -> 2027-04-05T17:34:45Z  (+6 months)
+> token.json mode 0600, directory 0700 (unchanged after atomic replace)
+> ```
 
 **Scopes requested**, and why each is necessary:
 > `public_repo` only, which is needed to add Issue comments on a public repository.
@@ -204,7 +212,26 @@ Issue bodies are treated as untrusted data; instructions inside them never count
 > with `uv run python -m week2.github_mcp auth` and a hint to restart the connection.
 > A transient refresh-endpoint failure returns `auth_unavailable / retryable=true` and keeps the cache.
 > Tool calls never open a browser. Verified with MockTransport.
-> Manual check with a real revoke → re-auth: TODO.
+>
+> Real revoke → re-auth (2026-10-06 UTC). I revoked the app under GitHub → Settings → Applications.
+> At that point the cached access token had already expired (01:34Z), so the next call took the
+> pre-expiry refresh path rather than the API-401 path:
+> ```text
+> 23:14Z list_issues {"limit":3}
+>   -> {"status":"error","error":{"code":"reauth_required","retryable":false,
+>       "message":"GitHub rejected the authorization code or refresh token.",
+>       "action":"Run `uv run python -m week2.github_mcp auth`, then restart the MCP connection.",
+>       "http_status":200}}
+> ```
+> No browser opened. The agent did not retry and told the user to run the auth command. The cache
+> was left untouched. (`http_status` is 200 because GitHub's token endpoint reports refresh errors
+> in a 200 body.) After `uv run python -m week2.github_mcp auth` (one browser approval) and a
+> `/mcp` reconnect:
+> ```text
+> 23:16Z list_issues {"limit":3}  -> status=ok, count=3
+> new cache: access expires 2026-10-07T07:15:34Z, refresh expires 2027-04-06T23:15:34Z, mode 0600
+> ```
+> The API-401 branch (forced refresh + one replay) was exercised only with MockTransport.
 
 ## Part IV: Integration
 
