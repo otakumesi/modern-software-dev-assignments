@@ -1,0 +1,19 @@
+run	skills_invoked	first_tool	prompt
+p1_r1	dayjs-bug-triage	Skill	dayjs の issue #3239 が再現できるか確認して
+p1_r2	dayjs-bug-triage	Skill	dayjs の issue #3239 が再現できるか確認して
+p1_r3	dayjs-bug-triage	Skill	dayjs の issue #3239 が再現できるか確認して
+p2_r1	dayjs-bug-triage	Skill	Can you triage this dayjs issue? https://github.com/iamkun/dayjs/issues/3006
+p2_r2	dayjs-bug-triage	Skill	Can you triage this dayjs issue? https://github.com/iamkun/dayjs/issues/3006
+p2_r3	dayjs-bug-triage	Skill	Can you triage this dayjs issue? https://github.com/iamkun/dayjs/issues/3006
+p3_r1	dayjs-bug-triage	Skill	dayjs('1981-12-01').daysInMonth() が 1 を返すんだけど、これって dayjs のバグ？
+p3_r2	dayjs-bug-triage	Skill	dayjs('1981-12-01').daysInMonth() が 1 を返すんだけど、これって dayjs のバグ？
+p3_r3	dayjs-bug-triage	Skill	dayjs('1981-12-01').daysInMonth() が 1 を返すんだけど、これって dayjs のバグ？
+nm_r1		Bash	dayjs の PR #3248 をレビューして
+nm_r2		Bash	dayjs の PR #3248 をレビューして
+nm_r3		Bash	dayjs の PR #3248 をレビューして
+nm2_r1			dayjs の timezone プラグインで dayjs.tz() と dayjs.utc() の違いと使い分けを教えて
+nm2_r2			dayjs の timezone プラグインで dayjs.tz() と dayjs.utc() の違いと使い分けを教えて
+nm2_r3			dayjs の timezone プラグインで dayjs.tz() と dayjs.utc() の違いと使い分けを教えて
+nm3_r1		Bash	dayjs の calendar プラグインに、週の始まりを月曜にするオプションを追加したい
+nm3_r2		Bash	dayjs の calendar プラグインに、週の始まりを月曜にするオプションを追加したい
+nm3_r3		Bash	dayjs の calendar プラグインに、週の始まりを月曜にするオプションを追加したい

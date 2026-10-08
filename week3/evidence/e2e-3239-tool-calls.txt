@@ -1,0 +1,33 @@
+Skill: dayjs-bug-triage
+Bash: cd $SCRATCH/dayjs && grep '"name"' pac
+Bash: D=$SCRATCH/dayjs; grep '"name"' $D/pac
+Bash: gh issue view 3239 -R iamkun/dayjs --comments
+Bash: git -C $SCRATCH/dayjs log -1 --format=
+Bash: gh issue view 3239 -R iamkun/dayjs --json number,title,state,body,comments,author,createdAt; echo "exit=$?"
+Grep: week|utc
+Glob: **/*
+Read: $SCRATCH/dayjs/src/plugin/customParseF
+Read: $REPO/.claude/skills/dayjs-bug-triage/scripts/new-repro.sh
+Read: $REPO/.claude/skills/dayjs-bug-triage/scripts/tz-matrix.sh
+Read: $REPO/.claude/skills/dayjs-bug-triage/references/verdicts.md
+Write: $SCRATCH/dayjs/test/__repro__/issue-32
+Bash: cd $SCRATCH/dayjs && bash $REPO/.claude/skills/dayjs-bug-triage/scripts/... (truncated)
+Bash: gh issue list -R iamkun/dayjs --state all --search "customParseFormat week utc" --limit 20; echo ---; gh pr list -R iamkun/dayjs --state all --search "customPar
+Bash: D=$SCRATCH/dayjs; for tz in UTC Asia/T
+Bash: TZ=UTC $SCRATCH/dayjs/node_modules/.bi
+Grep: "(test|test-tz|jest)"\s*:
+Bash: TZ=UTC npm --prefix $SCRATCH/dayjs exe
+Bash: cd $SCRATCH/dayjs
+Bash: bash $REPO/.claude/skills/dayjs-bug-triage/scripts/tz-matrix.sh test/__repro__/issue-3239.test.js Europe/Is
+Bash: TZ=UTC npx jest test/__repro__/issue-3239.test.js --coverage=false
+Write: $SCRATCH/dayjs/test/__repro__/issue-32
+Bash: for tz in UTC Asia/Tokyo America/New_York Europe/London Pacific/Auckland Asia/Kuala_Lumpur America/Sao_Paulo; do TZ=$tz npx jest test/__repro__/issue-3239.test.
+Bash: TZ=UTC npx jest test/__repro__/issue-3239.test.js --coverage=false 2>&1 | grep -E "✓|✕|dayjs(\.utc)?:|^Tests:"
+Bash: TZ=Asia/Tokyo npx jest test/__repro__/issue-3239.test.js --coverage=false 2>&1 | grep -E "✓|✕|dayjs(\.utc)?:|^Tests:"
+Bash: TZ=America/New_York npx jest test/__repro__/issue-3239.test.js --coverage=false 2>&1 | grep -E "✓|✕|dayjs(\.utc)?:|^Tests:"
+Bash: TZ=Europe/London npx jest test/__repro__/issue-3239.test.js --coverage=false 2>&1 | grep -E "✓|✕|dayjs(\.utc)?:|^Tests:"
+Bash: TZ=Pacific/Auckland npx jest test/__repro__/issue-3239.test.js --coverage=false 2>&1 | grep -E "✓|✕|dayjs(\.utc)?:|^Tests:"
+Bash: TZ=Asia/Kuala_Lumpur npx jest test/__repro__/issue-3239.test.js --coverage=false 2>&1 | grep -E "✓|✕|dayjs(\.utc)?:|^Tests:"
+Bash: TZ=America/Sao_Paulo npx jest test/__repro__/issue-3239.test.js --coverage=false 2>&1 | grep -E "✓|✕|dayjs(\.utc)?:|^Tests:"
+Bash: git log -1 --format='%h %s'; node --version; grep '"version"' node_modules/moment/package.json
+Bash: gh pr view 3240 -R iamkun/dayjs --json title,state,body,files,mergeable,reviews; gh pr diff 3240 -R iamkun/dayjs
