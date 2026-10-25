@@ -1,0 +1,5 @@
+Bash: cat package.json | head -40 && ls
+Bash: npm test 2>&1 | tail -80
+Bash: npx jest 2>&1 | grep -E "^(FAIL|  ●)|Coverage|All files" ; echo; node -v; date
+Bash: npx jest test/plugin/dayOfYear.test.js test/plugin/localizedFormat.test.js --coverage=false 2>&1 | grep -B2 -A25 "●" | head -90
+Bash: TZ=UTC npx jest --coverage=false 2>&1 | grep -E "^(FAIL|  ●)|^Tests:"

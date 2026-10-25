@@ -1,0 +1,6 @@
+Bash: cd $DAYJS; ls src/plugin | tr '\n' ' '; echo; cat src/plugin/isToday/index.js types/plugin/isToday.d.ts test/plugin/isToday.test.js
+Write: $DAYJS/src/plugin/isWeekend/index.js
+Write: $DAYJS/types/plugin/isWeekend.d.ts
+Write: $DAYJS/test/plugin/isWeekend.test.js
+Bash: cd $DAYJS; TZ=UTC npx jest test/plugin/isWeekend.test.js test/plugin/declarations.test.js --coverage=false 2>&1 | tail -15; TZ=Asia/To
+Bash: cd $DAYJS; TZ=UTC npx jest 2>&1 | grep -E "isWeekend|Tests:|Suites:|threshold|All files"

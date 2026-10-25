@@ -1,0 +1,4 @@
+run	claude_md	turns	cost_usd	duration_s	first_test_command	outcome
+task1-test-suite	yes	4	0.197	33	TZ=UTC npm test	success
+task1-baseline-no-claudemd	no	6	0.208	52	npm test	success
+task2-isweekend-plugin	yes	7	0.212	39	TZ=UTC npx jest test/plugin/isWeekend.test.js test/plugin/declarations.test.js --coverage=false	success

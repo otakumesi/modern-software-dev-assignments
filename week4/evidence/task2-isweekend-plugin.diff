@@ -1,0 +1,72 @@
+diff --git a/src/plugin/isWeekend/index.js b/src/plugin/isWeekend/index.js
+new file mode 100644
+index 0000000..0ac05d0
+--- /dev/null
++++ b/src/plugin/isWeekend/index.js
+@@ -0,0 +1,7 @@
++export default (o, c) => {
++  const proto = c.prototype
++  proto.isWeekend = function () {
++    const day = this.day()
++    return day === 0 || day === 6
++  }
++}
+diff --git a/types/plugin/isWeekend.d.ts b/types/plugin/isWeekend.d.ts
+new file mode 100644
+index 0000000..fb555ac
+--- /dev/null
++++ b/types/plugin/isWeekend.d.ts
+@@ -0,0 +1,10 @@
++import { PluginFunc } from 'dayjs'
++
++declare const plugin: PluginFunc
++export = plugin
++
++declare module 'dayjs' {
++  interface Dayjs {
++    isWeekend(): boolean
++  }
++}
+diff --git a/test/plugin/isWeekend.test.js b/test/plugin/isWeekend.test.js
+new file mode 100644
+index 0000000..c6551f1
+--- /dev/null
++++ b/test/plugin/isWeekend.test.js
+@@ -0,0 +1,37 @@
++import MockDate from 'mockdate'
++import dayjs from '../../src'
++import isWeekend from '../../src/plugin/isWeekend'
++import utc from '../../src/plugin/utc'
++
++dayjs.extend(isWeekend)
++dayjs.extend(utc)
++
++beforeEach(() => {
++  MockDate.set(new Date('2024-01-06T12:00:00'))
++})
++
++afterEach(() => {
++  MockDate.reset()
++})
++
++it('is weekend', () => {
++  expect(dayjs().isWeekend()).toBe(true) // Saturday
++  expect(dayjs('2024-01-06').isWeekend()).toBe(true) // Saturday
++  expect(dayjs('2024-01-07').isWeekend()).toBe(true) // Sunday
++})
++
++it('is not weekend', () => {
++  ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04', '2024-01-05'].forEach((d) => {
++    expect(dayjs(d).isWeekend()).toBe(false)
++  })
++})
++
++it('is not affected by locale week start', () => {
++  const date = dayjs('2024-01-07').locale({ name: 'test', weekStart: 1 })
++  expect(date.isWeekend()).toBe(true)
++})
++
++it('respects utc mode', () => {
++  expect(dayjs.utc('2024-01-06T00:00:00Z').isWeekend()).toBe(true)
++  expect(dayjs.utc('2024-01-05T23:59:59Z').isWeekend()).toBe(false)
++})

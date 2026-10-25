@@ -1,0 +1,3 @@
+Bash: ls node_modules >/dev/null 2>&1 && echo has_modules; TZ=UTC npm test 2>&1 | tail -60
+Bash: grep '"test"' package.json; TZ=UTC npm test > /tmp/dayjs-test.log 2>&1; echo "exit=$?"; grep -E "^(Test Suites|Tests):|All files|FAIL|ERROR|threshold" /tmp/dayj
+Grep: "test":
